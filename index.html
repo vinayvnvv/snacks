@@ -6,7 +6,21 @@
     <meta name="viewport" content="width=<device-width>, initial-scale=1.0">
     <title>Document</title>
 </head>
+<style>
+    .list > div {
+        animation: Anim 0.3s ease-in-out;
+    }
+    @keyframes Anim {
+        from {
+            transform: translateX(150px);
+        }
+        to {
+            transform: translateX(0px);
+        }
+    }
+</style>
 <body>
+    <div id="app" class="list"></div>
     <script src="index.js"></script>
 </body>
 </html>
