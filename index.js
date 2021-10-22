@@ -1,92 +1,65 @@
-let data = [
-  { value: 1, key: "as" },
-  { value: 2, key: "ass" },
-  { value: 3, key: "afs" },
-  { value: 4, key: "aqqs" },
-  { value: 5, key: "asdss" },
-];
-
-const Rama = function (_selector) {
-  var selector = _selector;
-  var realDom = [];
-  const create = (data) => {
-    const virtualDom = [];
-    data.forEach((i) => {
-      const el = document.createElement("div");
-      el.innerHTML = i.value;
-      virtualDom.push({ ref: el, value: i.value, key: i.key });
-    });
-    return virtualDom;
-  };
-  const append = (el, idx) => {
-    const _selector = document.getElementById(selector);
-    if (idx) {
-      _selector.insertBefore(el, _selector.children[idx]);
-    } else {
-      _selector.append(el);
+const React  = (() => {
+  let hooks = [];
+  let idx = 0;
+  let Component;
+  function useState(initVal) {
+    let state = hooks[idx] || initVal;
+    let _idx = idx;
+    let setState = newVal => {
+      hooks[_idx] = newVal;
+      if(Component) render(Component);
     }
-  };
-  const remove = (el) => {
-    el.remove();
-  };
-  let maxStack = 0;
-  const manipulateDom = (virtualDom) => {
-    console.log(virtualDom, realDom);
-    let VDIndex = 0;
-    let RDIndex = 0;
-    while (maxStack < 200) {
-      maxStack++;
-      console.log(RDIndex, VDIndex);
-      if (VDIndex === virtualDom.length && RDIndex === realDom.length) {
-        break;
-      }
-      if (VDIndex === virtualDom.length && RDIndex !== realDom.length) {
-        remove(realDom[RDIndex].ref);
-        RDIndex++;
-        continue;
-      }
-      if (!realDom[RDIndex]) {
-        append(virtualDom[VDIndex].ref);
-        VDIndex++;
-        continue;
-      }
-      if (realDom[RDIndex].key === virtualDom[VDIndex].key) {
-        if (realDom[RDIndex].value !== virtualDom[VDIndex].value) {
-          realDom[RDIndex].ref.innerHTML = virtualDom[VDIndex].value;
-        }
-        VDIndex++;
-        RDIndex++;
-      } else {
-        append(virtualDom[VDIndex].ref, VDIndex);
-        VDIndex++;
-      }
+    idx++;
+    return [state, setState];
+  }
+  function useEffect(cb, depArr) {
+    const oldDeps = hooks[idx];
+    let hasChanged = true;
+    if(oldDeps) {
+      hasChanged = depArr.some((dep, i) => !Object.is(dep, oldDeps[i]));
     }
-    realDom = virtualDom;
-  };
-  this.render = function (data) {
-    manipulateDom(create(data));
-  };
-};
+    if(hasChanged) cb();
+    hooks[idx] = depArr;
+    idx++;
+  }
+  function render(Com) {
+    Component = Com;
+    idx = 0;
+    let C = Com();
+    C.render();
+    return C;
+  }
+  return {useState, render, useEffect}
+})()
 
-const dom = new Rama("app");
 
-function createKeys(data) {
-  return data.map((i, idx) => ({ ...i, key: idx }));
+function Component() {
+  const [count, setCount] = React.useState(1)
+  const [name, setName] = React.useState('Vinay')
+  React.useEffect(() => {
+    console.log('changed name')
+  }, [name])
+  React.useEffect(() => {
+    console.log('changed count')
+  }, [count])
+  return {
+    render: () => {
+      console.log({count, name});
+    },
+    click: (num) => {
+      setCount(num);
+    },
+    changeName: (v) => {
+      setName(v);
+    }
+  }
 }
-// data = createKeys(data);
 
-dom.render(data);
-
-// setTimeout(() => {
-//   data.push({ value: "vinay", key: "sadsada" });
-//   data = data
-//     .slice(0, 2)
-//     .concat([{ value: "hello", key: "sada" }].concat(data.slice(2)));
-//   //   data = createKeys(data);
-//   dom.render(data);
-// }, 3000);
-
-setTimeout(() => {
-  data.pop();
-  dom.render(data);
-}, 3000);
+var app = React.render(Component);
+app.click(2);
+app.click(3);
+// var app = React.render(Component);
+app.changeName('yadav');
+// var app = React.render(Component);
+app.changeName('viay');
+// var app = React.render(Component);
